@@ -1,0 +1,19 @@
+{
+  "categories": [
+    { "name": "Salary", "color": "#22c55e", "type": "income" },
+    { "name": "Groceries", "color": "#f97316", "type": "expense" },
+    { "name": "Dining Out", "color": "#ef4444", "type": "expense" },
+    { "name": "Transport", "color": "#3b82f6", "type": "expense" },
+    { "name": "Utilities", "color": "#a855f7", "type": "expense" },
+    { "name": "Entertainment", "color": "#ec4899", "type": "expense" },
+    { "name": "Home Loan EMI", "color": "#64748b", "type": "emi" },
+    { "name": "Mutual Fund SIP", "color": "#14b8a6", "type": "sip" }
+  ],
+  "recurring": [],
+  "transactions": [
+    { "id": "sample-1", "kind": "expense", "category": "Groceries", "amount": 1250.0, "date": "2026-01-05", "note": "Weekly groceries" },
+    { "id": "sample-2", "kind": "expense", "category": "Transport", "amount": 300.0, "date": "2026-01-06", "note": "Metro card top-up" },
+    { "id": "sample-3", "kind": "expense", "category": "Dining Out", "amount": 850.0, "date": "2026-01-08", "note": "Dinner with friends" },
+    { "id": "sample-4", "kind": "expense", "category": "Utilities", "amount": 1800.0, "date": "2026-01-10", "note": "Electricity bill" }
+  ]
+}

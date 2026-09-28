@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Alok's Expense Tracker</title>
+<link rel="manifest" href="manifest.json" />
+<link rel="apple-touch-icon" href="icons/icon-192.png" />
+<meta name="theme-color" content="#6c5ce7" />
+<link rel="stylesheet" href="style.css" />
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <h1>💰 Alok's Expense Tracker</h1>
+    <div class="month-nav">
+      <button id="prevMonth">&#8592;</button>
+      <span id="monthLabel"></span>
+      <button id="nextMonth">&#8594;</button>
+    </div>
+  </header>
+
+  <section class="summary-cards">
+    <div class="card income">
+      <span class="label">Income</span>
+      <span class="value" id="totalIncome">₹0</span>
+    </div>
+    <div class="card expense">
+      <span class="label">Expenses</span>
+      <span class="value" id="totalExpense">₹0</span>
+    </div>
+    <div class="card emi">
+      <span class="label">EMIs</span>
+      <span class="value" id="totalEmi">₹0</span>
+    </div>
+    <div class="card sip">
+      <span class="label">SIPs</span>
+      <span class="value" id="totalSip">₹0</span>
+    </div>
+    <div class="card balance">
+      <span class="label">Net Balance</span>
+      <span class="value" id="netBalance">₹0</span>
+    </div>
+  </section>
+
+  <section class="main-grid">
+    <div class="panel chart-panel">
+      <h2>Spending by Category (This Month)</h2>
+      <canvas id="pieChart" height="260"></canvas>
+      <p class="empty-hint" id="chartEmptyHint" style="display:none;">No transactions this month yet.</p>
+
+      <details class="chart-toggle" id="ytdDetails">
+        <summary>Year to Date</summary>
+        <canvas id="pieChartYTD" height="260"></canvas>
+        <p class="empty-hint" id="chartYTDEmptyHint" style="display:none;">No transactions this year yet.</p>
+      </details>
+
+      <details class="chart-toggle" id="overallDetails">
+        <summary>Overall (since 21 Sep 2026)</summary>
+        <canvas id="pieChartOverall" height="260"></canvas>
+        <p class="empty-hint" id="chartOverallEmptyHint" style="display:none;">No transactions yet.</p>
+      </details>
+    </div>
+
+    <div class="panel form-panel">
+      <h2 id="formTitle">Add Transaction</h2>
+      <form id="txForm">
+        <input type="hidden" id="txId" />
+        <label>Type
+          <select id="txKind">
+            <option value="expense">Expense</option>
+            <option value="income">Income</option>
+          </select>
+        </label>
+        <label>Category
+          <select id="txCategory"></select>
+        </label>
+        <label>Amount (₹)
+          <input type="number" id="txAmount" step="0.01" min="0" required />
+        </label>
+        <label>Date
+          <input type="date" id="txDate" required />
+        </label>
+        <label>Note
+          <input type="text" id="txNote" placeholder="Optional note" />
+        </label>
+        <label class="checkbox-row">
+          <input type="checkbox" id="txRecurring" />
+          Repeat every month (e.g. EMI / SIP / Rent)
+        </label>
+        <div class="form-actions">
+          <button type="submit" id="txSubmitBtn">Add</button>
+          <button type="button" id="txCancelBtn" style="display:none;">Cancel</button>
+        </div>
+      </form>
+
+      <details class="category-manager">
+        <summary>Manage categories</summary>
+        <div class="cat-add-row">
+          <input type="text" id="newCatName" placeholder="Category name" />
+          <select id="newCatType">
+            <option value="expense">Expense</option>
+            <option value="income">Income</option>
+            <option value="emi">EMI</option>
+            <option value="sip">SIP</option>
+          </select>
+          <input type="color" id="newCatColor" value="#6c5ce7" />
+          <button id="addCatBtn" type="button">Add</button>
+        </div>
+        <ul id="categoryList"></ul>
+      </details>
+    </div>
+  </section>
+
+  <section class="panel recurring-panel">
+    <h2>Recurring (EMIs / SIPs / Rent)</h2>
+    <ul id="recurringList"></ul>
+    <p class="empty-hint" id="recurringEmptyHint">No recurring items yet. Tick "Repeat every month" when adding a transaction.</p>
+  </section>
+
+  <section class="panel list-panel">
+    <h2>Transactions this month</h2>
+    <table>
+      <thead>
+        <tr><th>Date</th><th>Category</th><th>Note</th><th>Amount</th><th></th></tr>
+      </thead>
+      <tbody id="txTableBody"></tbody>
+    </table>
+    <p class="empty-hint" id="txEmptyHint" style="display:none;">No transactions recorded for this month.</p>
+  </section>
+</div>
+<script src="app.js"></script>
+</body>
+</html>
