@@ -14,6 +14,9 @@ let overallChart = null;
 const $ = (id) => document.getElementById(id);
 const fmtMoney = (n) => "₹" + Number(n || 0).toLocaleString("en-IN", { maximumFractionDigits: 2 });
 const monthKey = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+const esc = (s) =>
+  String(s ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
+const safeColor = (c) => (/^#[0-9a-f]{3,8}$/i.test(c || "") ? c : "#ccc");
 
 async function api(path, method = "GET", body) {
   const opts = { method };
@@ -177,13 +180,13 @@ function renderTable(list) {
     const tr = document.createElement("tr");
     const sign = t.kind === "income" ? "pos" : "neg";
     tr.innerHTML = `
-      <td>${t.date}</td>
-      <td><span class="swatch" style="background:${cat ? cat.color : "#ccc"}"></span>${t.category}${t.recurringId ? ' <span class="recur-badge">(recurring)</span>' : ""}</td>
-      <td>${t.note || ""}</td>
-      <td class="amount-cell ${sign}">${t.kind === "income" ? "+" : "-"}${fmtMoney(t.amount)}</td>
+      <td>${esc(t.date)}</td>
+      <td><span class="swatch" style="background:${safeColor(cat && cat.color)}"></span>${esc(t.category)}${t.recurringId ? ' <span class="recur-badge">(recurring)</span>' : ""}</td>
+      <td>${esc(t.note)}</td>
+      <td class="amount-cell ${sign}">${t.kind === "income" ? "+" : "-"}${esc(fmtMoney(t.amount))}</td>
       <td>
-        <button class="del-btn" data-edit="${t.id}" title="Edit">✏️</button>
-        <button class="del-btn" data-del="${t.id}" title="Delete">🗑️</button>
+        <button class="del-btn" data-edit="${esc(t.id)}" title="Edit">✏️</button>
+        <button class="del-btn" data-del="${esc(t.id)}" title="Delete">🗑️</button>
       </td>`;
     body.appendChild(tr);
   }
@@ -200,8 +203,8 @@ function renderCategoryList() {
   ul.innerHTML = "";
   for (const c of state.categories) {
     const li = document.createElement("li");
-    li.innerHTML = `<span class="cat-name"><span class="swatch" style="background:${c.color}"></span>${c.name}<span class="tag">${c.type}</span></span>
-      <button class="remove-btn" data-cat="${c.name}">remove</button>`;
+    li.innerHTML = `<span class="cat-name"><span class="swatch" style="background:${safeColor(c.color)}"></span>${esc(c.name)}<span class="tag">${esc(c.type)}</span></span>
+      <button class="remove-btn" data-cat="${esc(c.name)}">remove</button>`;
     ul.appendChild(li);
   }
   ul.querySelectorAll("[data-cat]").forEach((btn) => {
@@ -219,8 +222,8 @@ function renderRecurringList() {
   $("recurringEmptyHint").style.display = state.recurring.length ? "none" : "block";
   for (const r of state.recurring) {
     const li = document.createElement("li");
-    li.innerHTML = `<span>${r.category} — ${fmtMoney(r.amount)} / month (day ${r.day})</span>
-      <button class="remove-btn" data-rec="${r.id}">remove</button>`;
+    li.innerHTML = `<span>${esc(r.category)} — ${esc(fmtMoney(r.amount))} / month (day ${esc(r.day)})</span>
+      <button class="remove-btn" data-rec="${esc(r.id)}">remove</button>`;
     ul.appendChild(li);
   }
   ul.querySelectorAll("[data-rec]").forEach((btn) => {

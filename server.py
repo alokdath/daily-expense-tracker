@@ -12,12 +12,27 @@ import http.server
 import socketserver
 import threading
 from datetime import datetime
+from urllib.parse import urlparse
 
 PORT = 8900
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_FILE = os.path.join(BASE_DIR, "data.json")
 
 _lock = threading.Lock()
+
+ALLOWED_HOSTS = {f"localhost:{PORT}", f"127.0.0.1:{PORT}"}
+ALLOWED_ORIGINS = {f"http://{h}" for h in ALLOWED_HOSTS}
+STATIC_FILES = {
+    "/": "index.html",
+    "/index.html": "index.html",
+    "/app.js": "app.js",
+    "/style.css": "style.css",
+    "/manifest.json": "manifest.json",
+    "/service-worker.js": "service-worker.js",
+    "/icons/icon-192.png": "icons/icon-192.png",
+    "/icons/icon-512.png": "icons/icon-512.png",
+    "/vendor/chart.umd.js": "vendor/chart.umd.js",
+}
 
 
 def load_data():
@@ -56,13 +71,49 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         except json.JSONDecodeError:
             return {}
 
+    # Block DNS-rebinding and cross-site requests: only the app's own origin may talk to the server.
+    def _request_allowed(self, needs_json=False):
+        if self.headers.get("Host", "") not in ALLOWED_HOSTS:
+            return False
+        origin = self.headers.get("Origin")
+        if origin is not None and origin not in ALLOWED_ORIGINS:
+            return False
+        if needs_json:
+            ctype = self.headers.get("Content-Type", "").split(";")[0].strip().lower()
+            if ctype != "application/json":
+                return False
+        return True
+
+    def _forbidden(self):
+        return self._send_json({"error": "forbidden"}, 403)
+
+    def list_directory(self, path):
+        self.send_error(404)
+        return None
+
     # ---- API routes ----
+    def do_HEAD(self):
+        if not self._request_allowed():
+            return self._forbidden()
+        return self._serve_static(head=True)
+
     def do_GET(self):
+        if not self._request_allowed():
+            return self._forbidden()
         if self.path == "/api/data":
             return self._send_json(load_data())
-        return super().do_GET()
+        return self._serve_static()
+
+    def _serve_static(self, head=False):
+        rel = STATIC_FILES.get(urlparse(self.path).path)
+        if rel is None:
+            return self.send_error(404)
+        self.path = "/" + rel
+        return super().do_HEAD() if head else super().do_GET()
 
     def do_POST(self):
+        if not self._request_allowed(needs_json=True):
+            return self._forbidden()
         if self.path == "/api/data":
             data = self._read_json_body()
             save_data(data)
@@ -77,6 +128,8 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         return self._send_json({"error": "not found"}, 404)
 
     def do_PUT(self):
+        if not self._request_allowed(needs_json=True):
+            return self._forbidden()
         if self.path.startswith("/api/transaction/"):
             tx_id = self.path.rsplit("/", 1)[-1]
             body = self._read_json_body()
@@ -91,6 +144,8 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         return self._send_json({"error": "not found"}, 404)
 
     def do_DELETE(self):
+        if not self._request_allowed():
+            return self._forbidden()
         if self.path.startswith("/api/transaction/"):
             tx_id = self.path.rsplit("/", 1)[-1]
             data = load_data()

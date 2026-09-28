@@ -1,6 +1,6 @@
 // Minimal service worker so Chrome/Safari treat this as an installable PWA.
-const CACHE = "expense-tracker-v6";
-const ASSETS = ["/", "/index.html", "/style.css", "/app.js", "/icons/icon-192.png", "/icons/icon-512.png"];
+const CACHE = "expense-tracker-v7";
+const ASSETS = ["/", "/index.html", "/style.css", "/app.js", "/icons/icon-192.png", "/icons/icon-512.png", "/vendor/chart.umd.js"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS)));
